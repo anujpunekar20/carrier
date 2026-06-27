@@ -12,6 +12,7 @@ import (
 	"github.com/anujpunekar20/carrier/internal/handlers"
 	"github.com/anujpunekar20/carrier/internal/routes"
 	"github.com/anujpunekar20/carrier/internal/services"
+	"github.com/anujpunekar20/carrier/internal/ent/migrate"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -26,7 +27,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := client.Schema.Create(context.Background()); err != nil {
+	if err := client.Schema.Create(
+		context.Background(),
+		migrate.WithDropIndex(true),
+		migrate.WithDropColumn(true),
+	); err != nil {
 		log.Fatalf("failed to run migrations: %v", err)
 	}
 

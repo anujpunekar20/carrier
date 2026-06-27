@@ -9,10 +9,11 @@ import (
 
 	"github.com/anujpunekar20/carrier/internal/config"
 	"github.com/anujpunekar20/carrier/internal/database"
+	"github.com/anujpunekar20/carrier/internal/ent/migrate"
 	"github.com/anujpunekar20/carrier/internal/handlers"
+	"github.com/anujpunekar20/carrier/internal/middleware"
 	"github.com/anujpunekar20/carrier/internal/routes"
 	"github.com/anujpunekar20/carrier/internal/services"
-	"github.com/anujpunekar20/carrier/internal/ent/migrate"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -37,7 +38,8 @@ func main() {
 
 	svc := services.NewJobService(client)
 	handler := handlers.NewJobHandler(svc)
-	app := fiber.New()
+	app := fiber.New(fiber.Config{ErrorHandler: middleware.ErrorHandler})
+	middleware.Register(app)
 	routes.Register(app, handler)
 
 	go func() {

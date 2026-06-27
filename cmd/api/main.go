@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -19,23 +20,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db, err := database.NewDB(*cfg)
+
+	client, err := database.NewDB(*cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	svc := services.NewJobService(db)
+
+	if err := client.Schema.Create(context.Background()); err != nil {
+		log.Fatalf("failed to run migrations: %v", err)
+	}
+
+	svc := services.NewJobService(client)
 	handler := handlers.NewJobHandler(svc)
 	app := fiber.New()
 	routes.Register(app, handler)
 
-	// Graceful shutdown: https://docs.gofiber.io/blog/fiber-v3-graceful-shutdown/#fibers-shutdown-method
 	go func() {
 		if err := app.Listen(":3000"); err != nil {
 			log.Printf("Server error: %v", err)
 		}
 	}()
 
-	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
@@ -45,7 +50,7 @@ func main() {
 		log.Fatalf("Server shutdown failed: %v", err)
 	}
 	log.Println("Server stopped gracefully")
-	if err := db.Close(); err != nil {
-		log.Fatalf("Db shutdown failed: %v", err)
+	if err := client.Close(); err != nil {
+		log.Fatalf("DB shutdown failed: %v", err)
 	}
 }

@@ -1,16 +1,15 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/anujpunekar20/carrier/internal/config"
+	"github.com/anujpunekar20/carrier/internal/ent"
 	_ "github.com/lib/pq"
 )
 
-// Returns a new DB instance.
-func NewDB(cfg config.Config) (*sql.DB, error) {
-	connStr := fmt.Sprintf(
+func NewDB(cfg config.Config) (*ent.Client, error) {
+	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.DBUser,
 		cfg.DBPassword,
@@ -18,9 +17,9 @@ func NewDB(cfg config.Config) (*sql.DB, error) {
 		cfg.DBPort,
 		cfg.DBName,
 	)
-	db, err := sql.Open("postgres", connStr)
+	client, err := ent.Open("postgres", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing db: %w", err)
 	}
-	return db, nil
+	return client, nil
 }

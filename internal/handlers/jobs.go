@@ -14,7 +14,7 @@ func NewJobHandler(service *services.JobService) *JobHandler {
 }
 
 func (j *JobHandler) ListJobs(c fiber.Ctx) error {
-	jobs, err := j.service.ListJobs()
+	jobs, err := j.service.ListJobs(c.Context())
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "internal server error",

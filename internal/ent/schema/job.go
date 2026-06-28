@@ -23,5 +23,9 @@ func (Job) Fields() []ent.Field {
 		field.Text("description").Optional(),
 		field.Time("posted_on").Optional(),
 		field.Time("scraped_at"),
+		field.Enum("status").
+			Values("saved", "applied", "interview", "offer", "rejected").
+			Default("saved"),
+		field.Text("notes").Optional(),
 	}
 }

@@ -131,3 +131,19 @@ func (s *JobService) CreateJob(ctx context.Context, input CreateJobInput) (*ent.
 func (s *JobService) DeleteJob(ctx context.Context, id int) error {
 	return s.db.Job.DeleteOneID(id).Exec(ctx)
 }
+
+type UpdateJobInput struct {
+	Status *job.Status `json:"status"`
+	Notes  *string     `json:"notes"`
+}
+
+func (s *JobService) UpdateJob(ctx context.Context, id int, input UpdateJobInput) (*ent.Job, error) {
+	u := s.db.Job.UpdateOneID(id)
+	if input.Status != nil {
+		u = u.SetStatus(*input.Status)
+	}
+	if input.Notes != nil {
+		u = u.SetNotes(*input.Notes)
+	}
+	return u.Save(ctx)
+}

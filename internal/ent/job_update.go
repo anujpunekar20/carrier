@@ -198,6 +198,40 @@ func (_u *JobUpdate) SetNillableScrapedAt(v *time.Time) *JobUpdate {
 	return _u
 }
 
+// SetStatus sets the "status" field.
+func (_u *JobUpdate) SetStatus(v job.Status) *JobUpdate {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *JobUpdate) SetNillableStatus(v *job.Status) *JobUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetNotes sets the "notes" field.
+func (_u *JobUpdate) SetNotes(v string) *JobUpdate {
+	_u.mutation.SetNotes(v)
+	return _u
+}
+
+// SetNillableNotes sets the "notes" field if the given value is not nil.
+func (_u *JobUpdate) SetNillableNotes(v *string) *JobUpdate {
+	if v != nil {
+		_u.SetNotes(*v)
+	}
+	return _u
+}
+
+// ClearNotes clears the value of the "notes" field.
+func (_u *JobUpdate) ClearNotes() *JobUpdate {
+	_u.mutation.ClearNotes()
+	return _u
+}
+
 // Mutation returns the JobMutation object of the builder.
 func (_u *JobUpdate) Mutation() *JobMutation {
 	return _u.mutation
@@ -230,7 +264,20 @@ func (_u *JobUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *JobUpdate) check() error {
+	if v, ok := _u.mutation.Status(); ok {
+		if err := job.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Job.status": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *JobUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(job.Table, job.Columns, sqlgraph.NewFieldSpec(job.FieldID, field.TypeInt))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -283,6 +330,15 @@ func (_u *JobUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ScrapedAt(); ok {
 		_spec.SetField(job.FieldScrapedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(job.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Notes(); ok {
+		_spec.SetField(job.FieldNotes, field.TypeString, value)
+	}
+	if _u.mutation.NotesCleared() {
+		_spec.ClearField(job.FieldNotes, field.TypeString)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -474,6 +530,40 @@ func (_u *JobUpdateOne) SetNillableScrapedAt(v *time.Time) *JobUpdateOne {
 	return _u
 }
 
+// SetStatus sets the "status" field.
+func (_u *JobUpdateOne) SetStatus(v job.Status) *JobUpdateOne {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *JobUpdateOne) SetNillableStatus(v *job.Status) *JobUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetNotes sets the "notes" field.
+func (_u *JobUpdateOne) SetNotes(v string) *JobUpdateOne {
+	_u.mutation.SetNotes(v)
+	return _u
+}
+
+// SetNillableNotes sets the "notes" field if the given value is not nil.
+func (_u *JobUpdateOne) SetNillableNotes(v *string) *JobUpdateOne {
+	if v != nil {
+		_u.SetNotes(*v)
+	}
+	return _u
+}
+
+// ClearNotes clears the value of the "notes" field.
+func (_u *JobUpdateOne) ClearNotes() *JobUpdateOne {
+	_u.mutation.ClearNotes()
+	return _u
+}
+
 // Mutation returns the JobMutation object of the builder.
 func (_u *JobUpdateOne) Mutation() *JobMutation {
 	return _u.mutation
@@ -519,7 +609,20 @@ func (_u *JobUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *JobUpdateOne) check() error {
+	if v, ok := _u.mutation.Status(); ok {
+		if err := job.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Job.status": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(job.Table, job.Columns, sqlgraph.NewFieldSpec(job.FieldID, field.TypeInt))
 	id, ok := _u.mutation.ID()
 	if !ok {
@@ -589,6 +692,15 @@ func (_u *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 	}
 	if value, ok := _u.mutation.ScrapedAt(); ok {
 		_spec.SetField(job.FieldScrapedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(job.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Notes(); ok {
+		_spec.SetField(job.FieldNotes, field.TypeString, value)
+	}
+	if _u.mutation.NotesCleared() {
+		_spec.ClearField(job.FieldNotes, field.TypeString)
 	}
 	_node = &Job{config: _u.config}
 	_spec.Assign = _node.assignValues

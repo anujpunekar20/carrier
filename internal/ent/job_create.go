@@ -120,6 +120,34 @@ func (_c *JobCreate) SetScrapedAt(v time.Time) *JobCreate {
 	return _c
 }
 
+// SetStatus sets the "status" field.
+func (_c *JobCreate) SetStatus(v job.Status) *JobCreate {
+	_c.mutation.SetStatus(v)
+	return _c
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_c *JobCreate) SetNillableStatus(v *job.Status) *JobCreate {
+	if v != nil {
+		_c.SetStatus(*v)
+	}
+	return _c
+}
+
+// SetNotes sets the "notes" field.
+func (_c *JobCreate) SetNotes(v string) *JobCreate {
+	_c.mutation.SetNotes(v)
+	return _c
+}
+
+// SetNillableNotes sets the "notes" field if the given value is not nil.
+func (_c *JobCreate) SetNillableNotes(v *string) *JobCreate {
+	if v != nil {
+		_c.SetNotes(*v)
+	}
+	return _c
+}
+
 // Mutation returns the JobMutation object of the builder.
 func (_c *JobCreate) Mutation() *JobMutation {
 	return _c.mutation
@@ -127,6 +155,7 @@ func (_c *JobCreate) Mutation() *JobMutation {
 
 // Save creates the Job in the database.
 func (_c *JobCreate) Save(ctx context.Context) (*Job, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -152,6 +181,14 @@ func (_c *JobCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *JobCreate) defaults() {
+	if _, ok := _c.mutation.Status(); !ok {
+		v := job.DefaultStatus
+		_c.mutation.SetStatus(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *JobCreate) check() error {
 	if _, ok := _c.mutation.Title(); !ok {
@@ -168,6 +205,14 @@ func (_c *JobCreate) check() error {
 	}
 	if _, ok := _c.mutation.ScrapedAt(); !ok {
 		return &ValidationError{Name: "scraped_at", err: errors.New(`ent: missing required field "Job.scraped_at"`)}
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Job.status"`)}
+	}
+	if v, ok := _c.mutation.Status(); ok {
+		if err := job.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Job.status": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -235,6 +280,14 @@ func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 		_spec.SetField(job.FieldScrapedAt, field.TypeTime, value)
 		_node.ScrapedAt = value
 	}
+	if value, ok := _c.mutation.Status(); ok {
+		_spec.SetField(job.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
+	}
+	if value, ok := _c.mutation.Notes(); ok {
+		_spec.SetField(job.FieldNotes, field.TypeString, value)
+		_node.Notes = value
+	}
 	return _node, _spec
 }
 
@@ -256,6 +309,7 @@ func (_c *JobCreateBulk) Save(ctx context.Context) ([]*Job, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*JobMutation)
 				if !ok {

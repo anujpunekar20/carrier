@@ -243,6 +243,70 @@ func TestJobHandlers(t *testing.T) {
 		})
 	})
 
+	t.Run("UpdateJob", func(t *testing.T) {
+		t.Run("update status", func(t *testing.T) {
+			app, client := setup(t)
+			j := seed(t, client, "Engineer", "Google", "NYC", "linkedin")
+
+			resp := do(t, app, http.MethodPatch, fmt.Sprintf("/api/v1/jobs/%d", j.ID), map[string]any{
+				"status": "applied",
+			})
+			attest.Equal(t, resp.StatusCode, http.StatusOK)
+
+			var got ent.Job
+			decode(t, resp, &got)
+			attest.Equal(t, got.Status.String(), "applied")
+		})
+
+		t.Run("update notes", func(t *testing.T) {
+			app, client := setup(t)
+			j := seed(t, client, "Engineer", "Google", "NYC", "linkedin")
+
+			resp := do(t, app, http.MethodPatch, fmt.Sprintf("/api/v1/jobs/%d", j.ID), map[string]any{
+				"notes": "reached out to recruiter",
+			})
+			attest.Equal(t, resp.StatusCode, http.StatusOK)
+
+			var got ent.Job
+			decode(t, resp, &got)
+			attest.Equal(t, got.Notes, "reached out to recruiter")
+		})
+
+		t.Run("update status and notes together", func(t *testing.T) {
+			app, client := setup(t)
+			j := seed(t, client, "Engineer", "Google", "NYC", "linkedin")
+
+			resp := do(t, app, http.MethodPatch, fmt.Sprintf("/api/v1/jobs/%d", j.ID), map[string]any{
+				"status": "interview",
+				"notes":  "phone screen scheduled",
+			})
+			attest.Equal(t, resp.StatusCode, http.StatusOK)
+
+			var got ent.Job
+			decode(t, resp, &got)
+			attest.Equal(t, got.Status.String(), "interview")
+			attest.Equal(t, got.Notes, "phone screen scheduled")
+		})
+
+		t.Run("invalid status", func(t *testing.T) {
+			app, client := setup(t)
+			j := seed(t, client, "Engineer", "Google", "NYC", "linkedin")
+
+			resp := do(t, app, http.MethodPatch, fmt.Sprintf("/api/v1/jobs/%d", j.ID), map[string]any{
+				"status": "ghosted",
+			})
+			attest.Equal(t, resp.StatusCode, http.StatusBadRequest)
+		})
+
+		t.Run("not found", func(t *testing.T) {
+			app, _ := setup(t)
+			resp := do(t, app, http.MethodPatch, "/api/v1/jobs/9999", map[string]any{
+				"status": "applied",
+			})
+			attest.Equal(t, resp.StatusCode, http.StatusNotFound)
+		})
+	})
+
 	t.Run("DeleteJob", func(t *testing.T) {
 		t.Run("success", func(t *testing.T) {
 			app, client := setup(t)

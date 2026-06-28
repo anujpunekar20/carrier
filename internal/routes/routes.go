@@ -12,5 +12,6 @@ func Register(app *fiber.App, jobHandler *handlers.JobHandler) {
 	jobs.Get("/list", jobHandler.ListJobs)
 	jobs.Get("/:id", jobHandler.GetJob)
 	jobs.Post("/", jobHandler.CreateJob)
+	jobs.Patch("/:id", jobHandler.UpdateJob)
 	jobs.Delete("/:id", jobHandler.DeleteJob)
 }

@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/anujpunekar20/carrier/internal/ent"
+	"github.com/anujpunekar20/carrier/internal/ent/job"
 	"github.com/anujpunekar20/carrier/internal/services"
 	"github.com/gofiber/fiber/v3"
 )
@@ -91,6 +92,43 @@ func (h *JobHandler) CreateJob(c fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusCreated).JSON(j)
+}
+
+func (h *JobHandler) UpdateJob(c fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid id",
+		})
+	}
+
+	var input services.UpdateJobInput
+	if err := c.Bind().JSON(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	if input.Status != nil {
+		if err := job.StatusValidator(*input.Status); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "status must be one of: saved, applied, interview, offer, rejected",
+			})
+		}
+	}
+
+	j, err := h.service.UpdateJob(c.Context(), id, input)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "job not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "internal server error",
+		})
+	}
+	return c.JSON(j)
 }
 
 func (h *JobHandler) DeleteJob(c fiber.Ctx) error {

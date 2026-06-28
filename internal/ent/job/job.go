@@ -3,6 +3,8 @@
 package job
 
 import (
+	"fmt"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -31,6 +33,10 @@ const (
 	FieldPostedOn = "posted_on"
 	// FieldScrapedAt holds the string denoting the scraped_at field in the database.
 	FieldScrapedAt = "scraped_at"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldNotes holds the string denoting the notes field in the database.
+	FieldNotes = "notes"
 	// Table holds the table name of the job in the database.
 	Table = "jobs"
 )
@@ -48,6 +54,8 @@ var Columns = []string{
 	FieldDescription,
 	FieldPostedOn,
 	FieldScrapedAt,
+	FieldStatus,
+	FieldNotes,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -58,6 +66,35 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// Status defines the type for the "status" enum field.
+type Status string
+
+// StatusSaved is the default value of the Status enum.
+const DefaultStatus = StatusSaved
+
+// Status values.
+const (
+	StatusSaved     Status = "saved"
+	StatusApplied   Status = "applied"
+	StatusInterview Status = "interview"
+	StatusOffer     Status = "offer"
+	StatusRejected  Status = "rejected"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusSaved, StatusApplied, StatusInterview, StatusOffer, StatusRejected:
+		return nil
+	default:
+		return fmt.Errorf("job: invalid enum value for status field: %q", s)
+	}
 }
 
 // OrderOption defines the ordering options for the Job queries.
@@ -116,4 +153,14 @@ func ByPostedOn(opts ...sql.OrderTermOption) OrderOption {
 // ByScrapedAt orders the results by the scraped_at field.
 func ByScrapedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldScrapedAt, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByNotes orders the results by the notes field.
+func ByNotes(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNotes, opts...).ToFunc()
 }

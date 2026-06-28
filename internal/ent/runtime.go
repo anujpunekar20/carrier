@@ -2,8 +2,14 @@
 
 package ent
 
+import (
+	"github.com/anujpunekar20/carrier/internal/ent/schema"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	jobFields := schema.Job{}.Fields()
+	_ = jobFields
 }

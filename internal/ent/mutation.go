@@ -43,6 +43,8 @@ type JobMutation struct {
 	description     *string
 	posted_on       *time.Time
 	scraped_at      *time.Time
+	status          *job.Status
+	notes           *string
 	clearedFields   map[string]struct{}
 	done            bool
 	oldValue        func(context.Context) (*Job, error)
@@ -572,6 +574,91 @@ func (m *JobMutation) ResetScrapedAt() {
 	m.scraped_at = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *JobMutation) SetStatus(j job.Status) {
+	m.status = &j
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *JobMutation) Status() (r job.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldStatus(ctx context.Context) (v job.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *JobMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetNotes sets the "notes" field.
+func (m *JobMutation) SetNotes(s string) {
+	m.notes = &s
+}
+
+// Notes returns the value of the "notes" field in the mutation.
+func (m *JobMutation) Notes() (r string, exists bool) {
+	v := m.notes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotes returns the old "notes" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldNotes(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotes: %w", err)
+	}
+	return oldValue.Notes, nil
+}
+
+// ClearNotes clears the value of the "notes" field.
+func (m *JobMutation) ClearNotes() {
+	m.notes = nil
+	m.clearedFields[job.FieldNotes] = struct{}{}
+}
+
+// NotesCleared returns if the "notes" field was cleared in this mutation.
+func (m *JobMutation) NotesCleared() bool {
+	_, ok := m.clearedFields[job.FieldNotes]
+	return ok
+}
+
+// ResetNotes resets all changes to the "notes" field.
+func (m *JobMutation) ResetNotes() {
+	m.notes = nil
+	delete(m.clearedFields, job.FieldNotes)
+}
+
 // Where appends a list predicates to the JobMutation builder.
 func (m *JobMutation) Where(ps ...predicate.Job) {
 	m.predicates = append(m.predicates, ps...)
@@ -606,7 +693,7 @@ func (m *JobMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *JobMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 12)
 	if m.title != nil {
 		fields = append(fields, job.FieldTitle)
 	}
@@ -637,6 +724,12 @@ func (m *JobMutation) Fields() []string {
 	if m.scraped_at != nil {
 		fields = append(fields, job.FieldScrapedAt)
 	}
+	if m.status != nil {
+		fields = append(fields, job.FieldStatus)
+	}
+	if m.notes != nil {
+		fields = append(fields, job.FieldNotes)
+	}
 	return fields
 }
 
@@ -665,6 +758,10 @@ func (m *JobMutation) Field(name string) (ent.Value, bool) {
 		return m.PostedOn()
 	case job.FieldScrapedAt:
 		return m.ScrapedAt()
+	case job.FieldStatus:
+		return m.Status()
+	case job.FieldNotes:
+		return m.Notes()
 	}
 	return nil, false
 }
@@ -694,6 +791,10 @@ func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldPostedOn(ctx)
 	case job.FieldScrapedAt:
 		return m.OldScrapedAt(ctx)
+	case job.FieldStatus:
+		return m.OldStatus(ctx)
+	case job.FieldNotes:
+		return m.OldNotes(ctx)
 	}
 	return nil, fmt.Errorf("unknown Job field %s", name)
 }
@@ -773,6 +874,20 @@ func (m *JobMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetScrapedAt(v)
 		return nil
+	case job.FieldStatus:
+		v, ok := value.(job.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case job.FieldNotes:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotes(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Job field %s", name)
 }
@@ -818,6 +933,9 @@ func (m *JobMutation) ClearedFields() []string {
 	if m.FieldCleared(job.FieldPostedOn) {
 		fields = append(fields, job.FieldPostedOn)
 	}
+	if m.FieldCleared(job.FieldNotes) {
+		fields = append(fields, job.FieldNotes)
+	}
 	return fields
 }
 
@@ -846,6 +964,9 @@ func (m *JobMutation) ClearField(name string) error {
 		return nil
 	case job.FieldPostedOn:
 		m.ClearPostedOn()
+		return nil
+	case job.FieldNotes:
+		m.ClearNotes()
 		return nil
 	}
 	return fmt.Errorf("unknown Job nullable field %s", name)
@@ -884,6 +1005,12 @@ func (m *JobMutation) ResetField(name string) error {
 		return nil
 	case job.FieldScrapedAt:
 		m.ResetScrapedAt()
+		return nil
+	case job.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case job.FieldNotes:
+		m.ResetNotes()
 		return nil
 	}
 	return fmt.Errorf("unknown Job field %s", name)

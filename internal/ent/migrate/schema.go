@@ -21,6 +21,8 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "posted_on", Type: field.TypeTime, Nullable: true},
 		{Name: "scraped_at", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"saved", "applied", "interview", "offer", "rejected"}, Default: "saved"},
+		{Name: "notes", Type: field.TypeString, Nullable: true, Size: 2147483647},
 	}
 	// JobsTable holds the schema information for the "jobs" table.
 	JobsTable = &schema.Table{

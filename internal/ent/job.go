@@ -36,7 +36,11 @@ type Job struct {
 	// PostedOn holds the value of the "posted_on" field.
 	PostedOn time.Time `json:"posted_on,omitempty"`
 	// ScrapedAt holds the value of the "scraped_at" field.
-	ScrapedAt    time.Time `json:"scraped_at,omitempty"`
+	ScrapedAt time.Time `json:"scraped_at,omitempty"`
+	// Status holds the value of the "status" field.
+	Status job.Status `json:"status,omitempty"`
+	// Notes holds the value of the "notes" field.
+	Notes        string `json:"notes,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -47,7 +51,7 @@ func (*Job) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case job.FieldID:
 			values[i] = new(sql.NullInt64)
-		case job.FieldTitle, job.FieldCompany, job.FieldLocation, job.FieldSalary, job.FieldEmploymentType, job.FieldURL, job.FieldSource, job.FieldDescription:
+		case job.FieldTitle, job.FieldCompany, job.FieldLocation, job.FieldSalary, job.FieldEmploymentType, job.FieldURL, job.FieldSource, job.FieldDescription, job.FieldStatus, job.FieldNotes:
 			values[i] = new(sql.NullString)
 		case job.FieldPostedOn, job.FieldScrapedAt:
 			values[i] = new(sql.NullTime)
@@ -132,6 +136,18 @@ func (_m *Job) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.ScrapedAt = value.Time
 			}
+		case job.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				_m.Status = job.Status(value.String)
+			}
+		case job.FieldNotes:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field notes", values[i])
+			} else if value.Valid {
+				_m.Notes = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -197,6 +213,12 @@ func (_m *Job) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("scraped_at=")
 	builder.WriteString(_m.ScrapedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("notes=")
+	builder.WriteString(_m.Notes)
 	builder.WriteByte(')')
 	return builder.String()
 }
